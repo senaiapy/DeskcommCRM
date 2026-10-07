@@ -1,0 +1,25 @@
+## 1. Retro-spec compliance capabilities (verify each requirement against code)
+
+- [x] 1.1 Retro-spec `lgpd-privacy` (12 requirements). Evidence: lib/lgpd/repository.ts:44, app/api/v1/lgpd/requests/route.ts:41, app/api/v1/lgpd/requests/[id]/approve/route.ts:334, app/api/v1/lgpd/anonymize/route.ts:121, workers/lgpd-export-worker.ts:187, workers/lgpd-redact-worker.ts:216, lib/lgpd/redact-cascade.ts:62, app/api/v1/cron/lgpd-sla-watcher/route.ts:62
+- [x] 1.2 Retro-spec `data-retention` (7 requirements). Evidence: lib/retencao/politica.ts:316, app/api/v1/cron/data-retention/route.ts:236, supabase/baseline.sql:13428, app/api/v1/cron/media-retention/route.ts:39, supabase/baseline.sql:39518, app/api/v1/cron/webhook-log-retention/route.ts:109, lib/channels/retencao-do-arquivo.ts:141
+- [x] 1.3 Retro-spec `extensions` (9 requirements). Evidence: lib/extensions/http.ts:29, lib/extensions/requests.ts:10, lib/extensions/service.ts:683, lib/extensions/manifest.ts:448, lib/extensions/download.ts:253, app/api/v1/extensions/[id]/configuration/route.ts:21, app/api/v1/extensions/[id]/open/route.ts:23
+- [x] 1.4 Retro-spec `installable-modules` (5 requirements). Evidence: app/api/v1/modulos/route.ts:8, app/api/v1/modulos/instalar/route.ts:13, lib/modulos/catalogo.ts:16, lib/modulos/service.ts:68, supabase/baseline.sql:33294, lib/extensions/erros-do-banco.ts:93
+- [x] 1.5 Retro-spec `honorarios-module` (9 requirements). Evidence: app/api/v1/honorarios/contratos/route.ts:97, app/api/v1/honorarios/contratos/[id]/parcelas/route.ts:76, app/api/v1/honorarios/parcelas/[id]/pagar/route.ts:81, supabase/baseline.sql:37029, supabase/baseline.sql:37234, lib/navigation/catalogo.ts:775, lib/instalacao/modulos.ts:141
+
+## 2. Retro-spec operations capabilities
+
+- [x] 2.1 Retro-spec `event-bus-workers` (9 requirements). Evidence: supabase/baseline.sql:12323, supabase/baseline.sql:1562, lib/event-log/drain.ts:178, lib/event-log/dispatcher.ts:76, app/api/v1/cron/event-log-drain/route.ts:27, lib/auth/cron-auth.ts:25, workers/agent-worker/main.ts:201
+- [x] 2.2 Retro-spec `selfhost-install-update` (12 requirements). Evidence: app/api/v1/system/version/route.ts:180, lib/system/update-run.ts:27, app/api/v1/system/update/route.ts:61, app/api/v1/system/agent/route.ts:135, hostgator-setup-kit/update.sh:194, hostgator-setup-kit/agent.sh:370, docker-compose.prod.yml:274, supabase/migrations/20260728140000_0090_system_update_dispatched_unique.sql:24
+- [x] 2.3 Retro-spec `backup-restore` (10 requirements). Evidence: hostgator-setup-kit/backup.sh:40, hostgator-setup-kit/restore.sh:69, hostgator-setup-kit/update.sh:216, scripts/backup-db.sh:8
+- [x] 2.4 Retro-spec `health` (9 requirements). Evidence: app/api/v1/health/route.ts:70, app/api/v1/health/route.ts:285, Dockerfile:123, docker-compose.prod.yml:40, hostgator-setup-kit/healthcheck.sh:12, app/api/v1/admin/tenants/[id]/health/route.ts:171
+- [x] 2.5 Retro-spec `metrics-reports` (10 requirements). Evidence: app/api/v1/metrics/attendants/route.ts:45, app/api/v1/metrics/atrito/route.ts:180, app/api/v1/metrics/funil/route.ts:105, app/api/v1/metrics/lost/route.ts:35, app/api/v1/reports/activities/route.ts:62, app/api/v1/reports/financeiro/route.ts:35, app/api/v1/reports/tags/route.ts:147
+- [x] 2.6 Retro-spec `notifications` (9 requirements). Evidence: app/api/v1/notifications/push/route.ts:28, lib/notifications/vapid.ts:4, lib/notifications/web_push.ts:48, lib/notifications/push.handler.ts:167, public/notify-sw.js:16, supabase/baseline.sql:15074
+- [x] 2.7 Retro-spec `file-storage` (9 requirements). Evidence: supabase/migrations/20260721120001_0055_whatsapp_media_bucket.sql:1, lib/messaging/media/types.ts:53, app/api/v1/messages/[id]/media/route.ts:40, app/api/v1/conversations/[id]/media/route.ts:25, lib/lgpd/storage-redaction-queue.ts:44, workers/storage-cleanup-worker.ts:11, app/api/v1/cron/storage-redaction/route.ts:20
+- [x] 2.8 Retro-spec `realtime` (7 requirements). Evidence: supabase/baseline.sql:4894, app/api/v1/auth/realtime-token/route.ts:35, lib/supabase/browser.ts:72, hooks/realtime/useRealtimeChannel.ts:52, lib/realtime/channels.ts:12, hooks/inbox/useConversationsRealtime.ts:226
+- [x] 2.9 Retro-spec `observability` (9 requirements). Evidence: lib/sentry/dsn.ts:16, sentry.server.config.ts:9, instrumentation-client.ts:15, lib/sentry/scrub.ts:147, lib/sentry/privacidade.ts:26, lib/logger.ts:13, lib/api/wrappers.ts:51, proxy.ts:159
+- [x] 2.10 Retro-spec `ci-quality-gates` (10 requirements). Evidence: .github/workflows/ci.yml:228, .github/workflows/e2e.yml:2228, scripts/test-db.sh:33, vitest.db.config.ts:10, scripts/lint-channels.ts:255, scripts/lint-role-rank.ts:50, tests/unit/e2e-cobertura-completa.test.ts:1, package.json:26
+- [x] 2.11 Retro-spec `local-dev-stack` (8 requirements). Evidence: docker-compose.local.yml:11, scripts/local-supabase.sh:17, scripts/local-stack.sh:41, ubuntu-local-installer.sh:107, scripts/dev-crons.ts:43, lib/dev/kick-local-pipeline.ts:130
+
+## 3. Validate
+
+- [x] 3.1 `openspec validate retro-compliance-ops --strict --no-interactive` passes. Evidence: command output recorded in the change report.

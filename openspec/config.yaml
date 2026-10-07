@@ -1,0 +1,63 @@
+schema: spec-driven
+
+# Project context, shown to the AI when creating any artifact.
+# CLAUDE.md stays the final authority; this is the minimum needed so a spec
+# does not contradict the product.
+context: |
+  DeskcommCRM — open source, multi-tenant sales CRM with native AI agents and
+  WhatsApp (WAHA) as the primary channel, self-hosted on a VPS from published
+  images. Package `deskcomm-crm`.
+
+  Stack: Next.js 16 App Router (Turbopack, request middleware in proxy.ts) ·
+  React 19 · TypeScript strict · Tailwind 4 (configured in app/globals.css) ·
+  shadcn/ui · Zod 4 · TanStack Query · Vercel AI SDK (Anthropic, OpenAI,
+  Google, OpenRouter) · Sentry · Vitest · Playwright. Node >= 22, pnpm.
+
+  Data and platform are SUPABASE:
+    - data: Postgres via @supabase/supabase-js (lib/supabase/{browser,server,admin}.ts);
+      schema in supabase/baseline.sql + supabase/migrations/.
+    - auth: Supabase Auth, cookie `sb-deskcomm-auth`, always getUser() never getSession();
+      optional TOTP MFA (lib/auth/politica-mfa.ts). Server-to-server: Bearer `dsk_` tokens
+      from api_tokens (lib/api/auth-dual.ts).
+    - realtime: Supabase Realtime (lib/realtime/).
+    - storage: Supabase Storage, private bucket `whatsapp-media`, signed URLs.
+    - queues: event_log + job_queue drained by app/api/v1/cron/* and workers/.
+  Prod compose: app, worker, scheduler, waha, redis, srh, caddy; profiles `voz`
+  (wacalls) and `telefonia` (asterisk, voice-agent).
+
+  Invariants a spec may never contradict:
+    - Multi-tenancy: organization_id on every tenant table, RLS through
+      fn_user_org_ids(). A service-role handler bypasses RLS and MUST filter
+      organization_id from a trusted source, NEVER from the body.
+    - Migration triple: supabase/migrations/<ts>_<NNNN>_<slug>.sql with a
+      `-- manifest:` line + idempotent appendix in supabase/baseline.sql.
+    - Postgres triggers NEVER do HTTP: they write event_log; a worker consumes.
+    - Money is integer `_cents` + ISO-4217 `currency`.
+    - API: /api/v1/, JSON snake_case, ok()/fail() from lib/api/wrappers.ts,
+      X-Request-Id on every response, Idempotency-Key on create POSTs,
+      requireSupportWrite( before every mutating effect. RBAC ranks
+      viewer < agent < manager < admin, plus platform admin.
+    - Features never name a channel provider (lint:channels).
+
+rules:
+  specs:
+    - "One SHALL sentence per requirement, concrete: name the table, column,
+      environment variable, route and HTTP code."
+    - "Scenarios are OBSERVABLE results (WHEN/THEN), never UI steps."
+    - "Every delta that creates a NEW capability opens with '## Purpose'."
+    - "Under MODIFIED, REPEAT every scenario the requirement already has."
+    - "Never write a requirement the code does not meet."
+  proposal:
+    - "Say what BREAKS, not only what improves."
+  tasks:
+    - "A closed task carries observed evidence (file:line or command output),
+      never 'works'."
+
+operations:
+  apply:
+    guidance:
+      - "Retro-spec (code already exists) closes each task citing file:line."
+  archive:
+    guidance:
+      - "Run the sync INLINE, never in the background."
+      - "After the sync, re-read every main spec touched before moving on."
