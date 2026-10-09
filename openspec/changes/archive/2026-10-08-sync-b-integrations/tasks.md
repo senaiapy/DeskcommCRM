@@ -1,0 +1,14 @@
+## 1. Re-verify the integration and reporting capabilities against HEAD
+
+- [x] 1.1 `notifications`: 1 removed, 2 added. Evidence: lib/notifications/push.handler.ts:22, lib/notifications/push.handler.ts:57, lib/notifications/push.handler.ts:75, lib/notifications/push.handler.ts:90, lib/notifications/push.handler.ts:123, lib/notifications/destinatarios-da-mensagem.ts:59, lib/notifications/destinatarios-da-mensagem.ts:97, lib/notifications/web_push.ts:98, supabase/migrations/20261008133818_0612_push_so_a_quem_ve_a_conversa.sql:15, app/api/v1/conversations/[id]/aviso-de-mensagem/route.ts:57, app/api/v1/conversations/[id]/aviso-de-mensagem/route.ts:79, hooks/notifications/useInboundMessageAlerts.ts:137
+- [x] 1.2 `metrics-reports`: 3 added. Evidence: app/api/v1/metrics/channels/route.ts:59, app/api/v1/metrics/channels/route.ts:75, supabase/migrations/20261007180002_0590_relatorio_por_canal.sql:2, supabase/migrations/20261008021443_0596_recorte_da_janela_nas_metricas.sql:2, app/api/v1/metrics/funil/route.ts:53, app/api/v1/metrics/funil/route.ts:342, app/api/v1/metrics/lost/route.ts:34, app/api/v1/metrics/lost/route.ts:122
+- [x] 1.3 `voip-asterisk`: 1 added. Evidence: workers/voice-agent/index.ts:322, workers/voice-agent/uso-da-sessao.ts:43, workers/voice-agent/uso-da-sessao.ts:125, lib/ai/usage/registrar-chamada.ts:56
+- [x] 1.4 `ads-attribution`: 1 added. Evidence: app/api/v1/plataformas-de-anuncio/google/connect/route.ts:85, app/api/v1/plataformas-de-anuncio/google/callback/route.ts:43, app/api/v1/plataformas-de-anuncio/google/callback/route.ts:82, app/api/v1/plataformas-de-anuncio/google/callback/route.ts:95, app/api/v1/plataformas-de-anuncio/google/callback/route.ts:107
+- [x] 1.5 `nuvemshop`: 1 added. Evidence: app/api/v1/integrations/nuvemshop/callback/route.ts:67, app/api/v1/integrations/nuvemshop/callback/route.ts:78
+- [x] 1.6 `google-calendar`: 2 added. Evidence: lib/agenda/google/oauth.ts:90, app/actions/settings/updateGoogleOAuth.ts:83, app/admin/(protected)/google/_form.tsx:49, app/legal/privacy/page.tsx:171
+- [x] 1.7 `extensions`: 1 added. Evidence: supabase/migrations/20261002170000_0511_catalogo_oficial_instala.sql:56, supabase/migrations/20261002170000_0511_catalogo_oficial_instala.sql:66
+- [x] 1.8 No drift found for `voice-whatsapp-calls`, `installable-modules`, `honorarios-module`, `file-storage` and `realtime` (`lib/voice/desparear.ts` only closes the pause notice covered by `agent-cases-escalation`; the `cobranca` switch in `lib/instalacao/modulos.ts` is an installation module owned by `billing-plans`). Evidence: `git diff --name-status 477b77678 HEAD -- lib/realtime lib/storage lib/honorarios workers/media-persist-worker.ts app/api/v1/voice` is empty
+
+## 2. Validate
+
+- [x] 2.1 `openspec validate sync-b-integrations --strict --no-interactive` passes

@@ -64,3 +64,10 @@ The developer and local-VM stack of DeskcommCRM: Supabase run locally by the Sup
 #### Scenario: Drain throws during a webhook
 - **WHEN** `drainEventLog` throws while `POST /api/v1/webhooks/in/[token]` is being handled
 - **THEN** a `[dev.pipeline]` warning is logged and the webhook response is not turned into a 5xx
+
+### Requirement: The worker health port is published on loopback only
+`docker-compose.yml` and `docker-compose.local.yml` SHALL publish the worker's `HEALTH_PORT` as `127.0.0.1:8787:8787`, so `/healthz` and `/metrics` are reachable from the host but not from other machines.
+
+#### Scenario: Another machine on the network
+- **WHEN** a host on the same network connects to port 8787 of the machine running the local stack
+- **THEN** the connection is refused because the port is bound to 127.0.0.1
