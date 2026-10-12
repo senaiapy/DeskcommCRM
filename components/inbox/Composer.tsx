@@ -28,10 +28,15 @@ import { useAssignableMembers } from "@/hooks/inbox/useAssignableMembers";
 import { useCreateNote } from "@/hooks/inbox/useCreateNote";
 import { useMessageTemplates, type MessageTemplate } from "@/hooks/inbox/useMessageTemplates";
 import { X } from "lucide-react";
+import { toast } from "sonner";
 import { useSendMessage } from "@/hooks/inbox/useSendMessage";
 import { useUploadMedia, type DestinoDoUpload } from "@/hooks/inbox/useUploadMedia";
 import { imagemDoClipboard } from "@/lib/inbox/clipboard-image";
-import { interpolateTemplate } from "@/lib/inbox/template-vars";
+import {
+  faltouNomeDeContato,
+  interpolateTemplate,
+  type TemplateContact,
+} from "@/lib/inbox/template-vars";
 import {
   type AvisoDeRascunho,
   type MotivoDeRecusa,
@@ -39,6 +44,8 @@ import {
 import { apiClient } from "@/lib/api/client";
 import { embutirMencoes, podarMencoes, type MencaoEscolhida } from "@/lib/notifications/mentions";
 import { cn } from "@/lib/utils";
+import { resolveSharedContact } from "@/lib/messaging/contact-card";
+import type { Message } from "@/lib/types/messaging";
 
 export interface ComposerHandle {
   focus: () => void;
@@ -92,11 +99,17 @@ interface Props {
    * Vem de fora e não daqui porque quem escolhe é a lista de mensagens: o
    * composer só precisa mostrar o que foi escolhido e mandá-lo junto.
    */
-  respondendo?: { id: string; body: string | null; direction: string } | null;
+  respondendo?: Pick<Message, "id" | "body" | "direction" | "type" | "metadata"> | null;
   /** Desfaz a escolha — o `x` da faixa de citação. */
   onCancelarResposta?: () => void;
   /** Nome do contato da conversa, para interpolar {{nome}}/{{primeiro_nome}} do template escolhido. */
   contactName?: string | null;
+  /**
+   * Rótulo do canal (`contacts.display_name`), fallback quando `contactName`
+   * é vazio (issue #2744). Contato criado pela ingestão do canal ainda não tem
+   * `name` gravado, e o template não podia mandar `{{nome}}` literal pro cliente.
+   */
+  contactDisplayName?: string | null;
   /** Contato da conversa — excluído do seletor de cartão compartilhado. */
   currentContactId?: string | null;
   /**
@@ -118,6 +131,7 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
     blockedReason,
     janelaFechada,
     contactName,
+    contactDisplayName,
     currentContactId,
     respondendo,
     onCancelarResposta,
@@ -325,9 +339,21 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
       });
   }
 
-  function applyTemplate(t: MessageTemplate) {
-    const filled = interpolateTemplate(t.body, { name: contactName ?? null });
+  function applyTemplate(tpl: MessageTemplate) {
+    const contato: TemplateContact = {
+      name: contactName ?? null,
+      displayName: contactDisplayName ?? null,
+    };
+    const filled = interpolateTemplate(tpl.body, contato);
     setText(filled);
+    // Contato sem `name` NEM `display_name`: o literal sobrevive no texto e iria
+    // pro cliente como `{{nome}}`. O aviso não é cosmético — é a única chance
+    // do operador editar antes de mandar (#2744).
+    if (faltouNomeDeContato(tpl.body, contato)) {
+      toast.warning(
+        t("Contato sem nome no CRM: {{nome}}/{{primeiro_nome}} ficaram literais no texto. Edite antes de enviar."),
+      );
+    }
     setMenuDismissed(true);
     const ta = taRef.current;
     if (!ta) return;
@@ -506,7 +532,9 @@ export const Composer = forwardRef<ComposerHandle, Props>(function Composer(
                 {respondendo.direction === "outbound" ? t("Você") : t("Cliente")}
               </div>
               <div className="line-clamp-2 text-xs text-muted-foreground">
-                {respondendo.body?.trim() || t("(sem texto)")}
+                {respondendo.type === "contact"
+                  ? resolveSharedContact(respondendo)?.name || t("Contato")
+                  : respondendo.body?.trim() || t("(sem texto)")}
               </div>
             </div>
             <button

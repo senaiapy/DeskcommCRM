@@ -28,19 +28,21 @@ const LINHA = {
   provedor: "stripe", provedor_cliente_id: "cus_1", provedor_assinatura_id: "sub_1", vencida_desde: null,
   proximo_vencimento: "2026-11-01T00:00:00.000Z", cancela_no_fim: false, prazo_extra_ate: null,
   ultimo_aviso: null, ultimo_aviso_em: null, relida_em: ha(1), link_de_pagamento: null, assinaturas_vivas: 1,
-  updated_at: ha(1),
+  checkout_url: null, checkout_expira_em: null, updated_at: ha(1),
 };
 
 function situacao(p: Partial<Situacao> = {}): Situacao {
   return {
     assinaturaRef: "sub_1", existe: true, assinaturasVivas: 1, cancelada: false, cancelaNoFim: false, emAtraso: false,
     vencidaDesde: null, proximoVencimento: new Date("2026-11-01T00:00:00Z"), jaPagou: true, emTesteNoProvedorAte: null,
-    pagamentoSemAssinaturaViva: false, linkDePagamento: null, statusBruto: "active", ...p,
+    pagamentoSemAssinaturaViva: false, linkDePagamento: null, statusBruto: "active", precoCents: null, ...p,
   };
 }
 
 interface Mundo {
   linha: Record<string, unknown> | null;
+  /** A linha de `cobranca_planos` que a leitura do preço da conferência devolve. */
+  plano: Record<string, unknown> | null;
   org: Record<string, unknown>;
   /** Quantas compare-and-set seguidas perdem; `aoPerder` é o escritor concorrente. */
   casPerdidos: number;
@@ -57,6 +59,7 @@ const enviarAviso = vi.fn();
 function responder(c: Cadeia): Resposta {
   if (c.tabela === "organizations") return { data: m.org };
   if (c.tabela === "agent_inbox_items") return { data: null };
+  if (c.tabela === "cobranca_planos") return { data: m.plano };
   const op = operacao(c);
   if (op === "select") return { data: m.linha };
   const campos = argumentos(c, "update")?.[0] as Record<string, unknown>;
@@ -91,6 +94,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   m = {
     linha: { ...LINHA },
+    plano: { id: "plano-a", preco_cents: 4990 },
     org: { status: "active", suspended_kind: null, locale: "pt-BR", timezone: "America/Sao_Paulo" },
     casPerdidos: 0,
     aoPerder: null,
@@ -136,6 +140,26 @@ describe("sincronizar", () => {
       action: "cobranca.estado_mudou", organizationId: ORG, metadata: { de: "ativa", para: "em_atraso", status_bruto: "past_due" },
     }));
     expect(enviarAviso.mock.calls[0]?.[3]).toBe("https://invoice.stripe.com/i/x");
+  });
+
+  // #2609: a sincronização CONFERE o preço da assinatura no provedor contra o
+  // preço do plano gravado. O alvo é o agendado, senão o atual — o mesmo que
+  // `troca.ts` leva ao provedor. Divergiu: os dois números vão para o audit.
+  it("⭐ #2609 preço da assinatura no provedor ≠ preço do plano gravado: detectado e auditado", async () => {
+    ler.mockResolvedValue(situacao({ precoCents: 9990 }));
+    expect(await rodar()).toMatchObject({ tipo: "aplicada" });
+    expect(acoes()).toContain("cobranca.preco_divergente");
+    expect(h.audit).toHaveBeenCalledWith(expect.objectContaining({
+      action: "cobranca.preco_divergente",
+      organizationId: ORG,
+      metadata: expect.objectContaining({ plano_id: "plano-a", preco_plano_cents: 4990, preco_provedor_cents: 9990, provedor: "stripe" }),
+    }));
+  });
+
+  it("#2609 controle: preço do provedor igual ao do plano — nada auditado", async () => {
+    ler.mockResolvedValue(situacao({ precoCents: 4990 }));
+    expect(await rodar()).toMatchObject({ tipo: "aplicada" });
+    expect(acoes()).not.toContain("cobranca.preco_divergente");
   });
 
   it("⭐ leitura mais velha que a já aplicada é descartada: nada de audit, nada de régua", async () => {
@@ -236,6 +260,22 @@ describe("sincronizar", () => {
     expect(await rodar()).toMatchObject({ acao: "nada" });
     expect(enviarAviso).not.toHaveBeenCalled();
   });
+  it("⭐ checkout em andamento (reserva sem link, prazo vivo): a leitura NÃO a limpa — a fase 3 do checkout a fecha", async () => {
+    m.linha = { ...LINHA, checkout_url: null, checkout_expira_em: new Date(AGORA.getTime() + 2 * 60_000).toISOString() };
+    ler.mockResolvedValue(situacao({ assinaturasVivas: 1 }));
+    await rodar();
+    const campos = argumentos(escritas()[0]!, "update")?.[0] as Record<string, unknown>;
+    expect(Object.keys(campos)).not.toContain("checkout_expira_em");
+    expect(Object.keys(campos)).not.toContain("checkout_url");
+  });
+
+  it("link de checkout já gravado e assinatura viva: a leitura limpa o checkout (ele já foi usado)", async () => {
+    m.linha = { ...LINHA, checkout_url: "https://checkout.example.com/x", checkout_expira_em: new Date(AGORA.getTime() + 60 * 60_000).toISOString() };
+    ler.mockResolvedValue(situacao({ assinaturasVivas: 1 }));
+    await rodar();
+    expect(argumentos(escritas()[0]!, "update")?.[0]).toMatchObject({ checkout_url: null, checkout_expira_em: null });
+  });
+
   it("⭐ assinatura que morreu com plano agendado: o agendado é apagado da linha, e o plano atual fica", async () => {
     m.linha = { ...LINHA, plano_agendado_id: "plano-b" };
     ler.mockResolvedValue(situacao({ cancelada: true, existe: false, assinaturasVivas: 0, statusBruto: "canceled" }));

@@ -26,6 +26,7 @@ interface Mundo { linha: Record<string, unknown> | null; assentos: number; canai
 let m: Mundo;
 let banco: BancoFalso;
 const trocarNoProvedor = vi.fn<AdaptadorDeCobranca["trocarPlano"]>();
+const expirarSessao = vi.fn<AdaptadorDeCobranca["expirarSessao"]>();
 
 function responder(c: Cadeia): Resposta {
   if (c.tabela === "cobranca_planos") return { data: PLANOS.find((p) => p.id === valorDoFiltro(c, "eq", "id")) ?? null };
@@ -37,12 +38,12 @@ function responder(c: Cadeia): Resposta {
 
 const trocar = (planoId: string, origem?: "empresa" | "dono") =>
   trocarPlanoDaOrg(banco.cliente as never, ORG, planoId, {
-    adaptador: () => ({ trocarPlano: trocarNoProvedor } as unknown as AdaptadorDeCobranca),
+    adaptador: () => ({ trocarPlano: trocarNoProvedor, expirarSessao } as unknown as AdaptadorDeCobranca),
     agora: () => AGORA,
     origem,
   });
 const escritas = () => banco.cadeias.filter((c) => c.tabela === "cobranca_assinaturas" && operacao(c) === "update");
-const EM_TESTE = { plano_id: "basico", plano_agendado_id: null, estado: "trial", trial_ate: "2026-10-20T00:00:00Z", provedor: null, provedor_assinatura_id: null, proximo_vencimento: null, checkout_url: null, checkout_expira_em: null };
+const EM_TESTE = { plano_id: "basico", plano_agendado_id: null, estado: "trial", trial_ate: "2026-10-20T00:00:00Z", provedor: null, provedor_assinatura_id: null, proximo_vencimento: null, checkout_url: null, checkout_expira_em: null, checkout_sessao_id: null };
 const PAGANDO = { ...EM_TESTE, estado: "ativa", provedor: "stripe", provedor_assinatura_id: "sub_1", proximo_vencimento: "2026-11-01T00:00:00Z" };
 
 beforeEach(() => {
@@ -50,6 +51,7 @@ beforeEach(() => {
   m = { linha: { ...EM_TESTE }, assentos: 1, canais: 1, casPerdido: false };
   banco = bancoFalso(responder);
   trocarNoProvedor.mockResolvedValue(undefined);
+  expirarSessao.mockResolvedValue(undefined);
 });
 
 describe("trocarPlanoDaOrg", () => {
@@ -103,10 +105,13 @@ describe("trocarPlanoDaOrg", () => {
     expect(escritas()).toEqual([]);
   });
 
-  it("o provedor recusa por período corrente pendente (Asaas): 409 pagamento_pendente", async () => {
+  it("⭐ o provedor recusa por período corrente pendente (Asaas): 409 com o código da spec, e nada gravado", async () => {
     m.linha = { ...PAGANDO };
     trocarNoProvedor.mockRejectedValue(new ErroDoProvedor(null, "pagamento_do_periodo_pendente", false));
-    expect(await trocar("pro")).toMatchObject({ ok: false, status: 409, code: "pagamento_pendente" });
+    expect(await trocar("pro")).toMatchObject({
+      ok: false, status: 409, code: "pagamento_do_periodo_pendente", message: FRASE_DO_PERIODO_PENDENTE,
+    });
+    expect(escritas()).toEqual([]);
   });
 
   it("outro intervalo: 422 plano_invalido", async () => {
@@ -173,6 +178,48 @@ describe("trocarPlanoDaOrg", () => {
     expect(trocarNoProvedor).not.toHaveBeenCalled();
   });
 
+  // #2609: com a id da sessão guardada, o link em aberto NÃO trava mais a troca —
+  // a sessão expira NO PROVEDOR (antes da escrita), a troca vale na hora e o link
+  // antigo deixa de valer. Sem a id guardada (linha anterior à 0641) não há o que
+  // expirar, e vale a recusa do teste acima.
+  it("⭐ #2609 link em aberto com a sessão guardada: a troca expira a sessão no provedor, conclui e limpa o link", async () => {
+    m.linha = {
+      ...EM_TESTE, provedor: "stripe",
+      checkout_url: "https://pagar.exemplo/s1", checkout_expira_em: "2026-10-10T13:00:00Z", checkout_sessao_id: "cs_aberta_1",
+    };
+    expect(await trocar("pro")).toMatchObject({ ok: true, changed: true, quando: "imediato", planoId: "pro" });
+    expect(expirarSessao).toHaveBeenCalledOnce();
+    expect(expirarSessao).toHaveBeenCalledWith("cs_aberta_1");
+    expect(trocarNoProvedor).not.toHaveBeenCalled();
+    expect(argumentos(escritas()[0]!, "update")?.[0]).toMatchObject({
+      plano_id: "pro", checkout_url: null, checkout_expira_em: null, checkout_sessao_id: null,
+    });
+  });
+
+  it("#2609 o provedor não confirmou a expiração: 503 e nada muda — o link antigo continua valendo", async () => {
+    m.linha = {
+      ...EM_TESTE, provedor: "stripe",
+      checkout_url: "https://pagar.exemplo/s1", checkout_expira_em: "2026-10-10T13:00:00Z", checkout_sessao_id: "cs_aberta_1",
+    };
+    expirarSessao.mockRejectedValueOnce(new ErroDoProvedor(503, "api_error", true));
+    expect(await trocar("pro")).toMatchObject({ ok: false, status: 503, code: "provedor_indisponivel" });
+    expect(escritas()).toEqual([]);
+  });
+
+  // A recusa NÃO transitória é a mais cara de perder: a Stripe recusa (400) expirar
+  // a sessão que já foi PAGA e cujo aviso ainda não chegou. Seguir com a troca aí
+  // gravaria o plano novo para quem acabou de pagar o antigo.
+  it("#2609 o provedor recusou expirar (sessão já paga): a mesma recusa de sempre, e nada muda", async () => {
+    m.linha = {
+      ...EM_TESTE, provedor: "stripe",
+      checkout_url: "https://pagar.exemplo/s1", checkout_expira_em: "2026-10-10T13:00:00Z", checkout_sessao_id: "cs_paga_1",
+    };
+    expirarSessao.mockRejectedValueOnce(new ErroDoProvedor(400, "invalid_request_error", false));
+    expect(await trocar("pro")).toMatchObject({ ok: false, status: 409, code: "checkout_em_aberto" });
+    expect(escritas()).toEqual([]);
+    expect(trocarNoProvedor).not.toHaveBeenCalled();
+  });
+
   it("teste grátis com link de pagamento já expirado: a troca vale na hora e o link sai junto", async () => {
     m.linha = { ...EM_TESTE, provedor: "stripe", checkout_url: "https://pagar.exemplo/s1", checkout_expira_em: "2026-10-10T11:00:00Z" };
     expect(await trocar("pro")).toMatchObject({ ok: true, quando: "imediato", planoId: "pro" });
@@ -183,5 +230,25 @@ describe("trocarPlanoDaOrg", () => {
     m.linha = { ...PAGANDO, plano_id: "mini", plano_agendado_id: "pro" };
     m.assentos = 3;
     expect(await trocar("mini")).toMatchObject({ ok: true, planoAgendadoId: null });
+  });
+});
+
+const FRASE_DO_PERIODO_PENDENTE =
+  'A mensalidade de agora ainda não foi paga. Pague em "Pagar agora" e troque de plano depois que o pagamento for confirmado (Pix: minutos; boleto: até 1 dia útil).';
+
+describe("troca no teste grátis com a assinatura já criada no provedor (Asaas, PR 3b)", () => {
+  const FATURA = "https://sandbox.asaas.com/i/pay_1";
+
+  it("⭐ o provedor leva o preço novo à fatura aberta, e o link dela FICA (o próximo Assinar devolve a mesma fatura)", async () => {
+    m.linha = { ...EM_TESTE, provedor: "asaas", provedor_assinatura_id: "sub_asaas_1", checkout_url: FATURA };
+    expect(await trocar("pro")).toMatchObject({ ok: true, quando: "imediato", planoId: "pro" });
+    expect(trocarNoProvedor).toHaveBeenCalledWith({ assinaturaRef: "sub_asaas_1", plano: { id: "pro", nome: "pro", precoCents: 9990, intervalo: "mes" } });
+    expect(Object.keys(argumentos(escritas()[0]!, "update")?.[0] as object).sort()).toEqual(["plano_agendado_id", "plano_id", "updated_at"]);
+  });
+
+  it("controle: sem assinatura no provedor, o link pendente saiu com o preço antigo e é limpo, como no PR 3a", async () => {
+    m.linha = { ...EM_TESTE, checkout_url: "https://checkout.stripe.com/c/pay/cs_1" };
+    await trocar("pro");
+    expect(argumentos(escritas()[0]!, "update")?.[0]).toMatchObject({ checkout_url: null, checkout_expira_em: null });
   });
 });
