@@ -50,6 +50,7 @@ export function useCrmAlerts(): void {
           kind: "lead_assigned",
           title: "Lead atribuído a você",
           body: title,
+          corpoSemPrevia: title,
           tag: str(novo.id) ?? undefined,
           href,
         });
@@ -60,6 +61,7 @@ export function useCrmAlerts(): void {
           kind: "lead_won",
           title: "Lead ganho",
           body: title,
+          corpoSemPrevia: title,
           tag: str(novo.id) ?? undefined,
           href,
         });
@@ -70,6 +72,7 @@ export function useCrmAlerts(): void {
           kind: "lead_lost",
           title: "Lead perdido",
           body: title,
+          corpoSemPrevia: title,
           tag: str(novo.id) ?? undefined,
           href,
         });
