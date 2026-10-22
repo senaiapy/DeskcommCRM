@@ -478,6 +478,38 @@ export const DICIONARIO: Traducoes = {
     es: "Desactivado, ganar no toca el financiero: la tienda con checkout, el infoproducto y la inmobiliaria no viven de cuentas por cobrar. Activado, arrastrar a la etapa de ganado y el botón Ganar abren una orden de servicio con el valor y el contacto del negocio.",
   },
   "Motivo do ganho": { es: "Motivo del negocio ganado" },
+  "A etapa escolhida exige alguns dados. Preencha para continuar.": {
+    es: "La etapa elegida exige algunos datos. Complétalos para continuar.",
+  },
+  // #2642 — o aviso da EQUIPE na virada para ganho. Rótulos do corpo do
+  // resumo (WhatsApp) e do formulário da ação notify_team. O e-mail para uma
+  // pessoa da equipe (recorte do PR #2834) usa os rótulos do `send_email`.
+  "Resumo do lead para a equipe": { es: "Resumen del lead para el equipo" },
+  "Resumo automático": { es: "Resumen automático" },
+  "Mensagem para a equipe (resumo do negócio ganho)": {
+    es: "Mensaje al equipo (resumen del negocio ganado)",
+  },
+  "Regra": { es: "Regla" },
+  "Telefone": { es: "Teléfono" },
+  "Pontuação": { es: "Puntuación" },
+  // #2642 — formulário da ação notify_team, depois do recorte: o destino é o
+  // número de Avisos e não há mais escolha de pessoa nem de canal.
+  "Vai para o WhatsApp cadastrado em Avisos.": { es: "Va al WhatsApp registrado en Avisos." },
+  "O resumo leva o nome da regra, o cliente, o telefone, o valor, a pontuação e um atalho para o negócio no CRM (quando a instalação tem endereço público). O que foi conversado com o cliente não vai na mensagem.": {
+    es: "El resumen lleva el nombre de la regla, el cliente, el teléfono, el valor, la puntuación y un atajo al negocio en el CRM (cuando la instalación tiene dirección pública). Lo conversado con el cliente no va en el mensaje.",
+  },
+  "A variável Resumo do negócio leva o nome da regra, o cliente, o telefone, o valor, a pontuação e um atalho para o negócio no CRM (quando a instalação tem endereço público), e nada do que foi conversado com o cliente. O resto do corpo vai como você escrever, inclusive as outras variáveis.": {
+    es: "La variable Resumen del negocio lleva el nombre de la regla, el cliente, el teléfono, el valor, la puntuación y un atajo al negocio en el CRM (cuando la instalación tiene dirección pública), y nada de lo conversado con el cliente. El resto del cuerpo va como lo escribas, incluidas las demás variables.",
+  },
+  // #2642 — o destinatário "membro da equipe" e a variável `{{resumo}}` do
+  // `send_email`.
+  "WhatsApp da equipe": { es: "WhatsApp del equipo" },
+  "Pessoa da equipe": { es: "Persona del equipo" },
+  "E-mail de uma pessoa da equipe": { es: "Correo de una persona del equipo" },
+  "Resumo do negócio": { es: "Resumen del negocio" },
+  "A pessoa recebe no e-mail cadastrado no acesso dela, e o vínculo com a empresa é conferido no momento do envio.": {
+    es: "La persona recibe en el correo registrado en su acceso, y el vínculo con la empresa se comprueba en el momento del envío.",
+  },
   "Preencha os campos obrigatórios antes de continuar: {campos}.": {
     es: "Completa los campos obligatorios antes de continuar: {campos}.",
   },
@@ -1651,10 +1683,21 @@ export const DICIONARIO: Traducoes = {
   vazio: { es: "vacío" },
   "Abrir conversa no Inbox": { es: "Abrir conversación en el Inbox" },
 
+  // ─── Aviso à equipe (mensagem para a equipe na virada para ganho) ───
+  "O aviso à equipe não tem número cadastrado. Cadastre-o em Configurações › Avisos.": { es: "El aviso al equipo no tiene número registrado. Regístrelo en Configuración › Avisos." },
+  "O número cadastrado para avisar a equipe não está mais entre as conexões desta organização.": { es: "El número registrado para avisar al equipo ya no está entre las conexiones de esta organización." },
+  "A conexão do número da equipe está sem credencial. Reconecte o número em Conexões.": { es: "La conexión del número del equipo está sin credencial. Reconecte el número en Conexiones." },
+  "O telefone cadastrado para avisar a equipe não é válido para este canal. Corrija-o em Configurações › Avisos.": { es: "El teléfono registrado para avisar al equipo no es válido para este canal. Corríjalo en Configuración › Avisos." },
+  "O canal do número da equipe recusou a mensagem agora. A automação tenta de novo no próximo disparo.": { es: "El canal del número del equipo rechazó el mensaje ahora. La automatización lo reintenta en el próximo disparo." },
+  "A equipe foi avisada pelo WhatsApp.": { es: "El equipo fue avisado por WhatsApp." },
+  "A regra guarda um canal que esta ação não envia. Abra a automação e salve de novo com o WhatsApp da equipe.": { es: "La regla guarda un canal que esta acción no envía. Abra la automatización y guárdela de nuevo con el WhatsApp del equipo." },
+  "A pessoa escolhida não tem e-mail cadastrado no acesso dela.": { es: "La persona elegida no tiene correo registrado en su acceso." },
+  "A regra não tem a pessoa da equipe escolhida. Abra a automação e escolha quem deve receber.": { es: "La regla no tiene la persona del equipo elegida. Abra la automatización y elija quién debe recibir." },
+  "A pessoa escolhida não faz mais parte da equipe, então o e-mail não foi enviado. Escolha outra pessoa na automação.": { es: "La persona elegida ya no forma parte del equipo, así que el correo no se envió. Elija otra persona en la automatización." },
+
   // ─── Contatos ───
   "Buscar contatos…": { es: "Buscar contactos…" },
   Nome: { es: "Nombre" },
-  Telefone: { es: "Teléfono" },
   "Nenhum contato": { es: "Sin contactos" },
   Bloqueado: { es: "Bloqueado" },
 
@@ -1893,6 +1936,12 @@ export const DICIONARIO: Traducoes = {
   "Menu do usuário": { es: "Menú del usuario" },
   Sair: { es: "Cerrar sesión" },
   "Central de avisos": { es: "Central de avisos" },
+  // O que a tela diz a quem NÃO alcança a Central (#3147): a frase verdadeira
+  // no lugar do estado vazio, que era falso para quem não pode ver aviso nenhum.
+  "A Central de avisos é para quem atende": { es: "La Central de avisos es para quienes atienden" },
+  "Os avisos são pedidos do assistente para as pessoas que atendem. Se precisar deles, peça a quem administra para revisar seu acesso.": {
+    es: "Los avisos son pedidos del asistente para las personas que atienden. Si los necesitas, pide a quien administra que revise tu acceso.",
+  },
   "em aberto": { es: "abiertos" },
   // ─── Agentes de IA: lista ───
   "Agentes de IA": { es: "Agentes de IA" },
@@ -6077,6 +6126,7 @@ export const DICIONARIO: Traducoes = {
   "Iniciar follow-up": { es: "Iniciar seguimiento" },
   "Tarefa interna": { es: "Tarea interna" },
   "Plano de tarefas": { es: "Plan de tareas" },
+  "Mensagem para a equipe": { es: "Mensaje para el equipo" },
   "Automação ligada.": { es: "Automatización activada." },
   "Automação pausada.": { es: "Automatización pausada." },
   "Crie sua primeira automação": { es: "Crea tu primera automatización" },
@@ -6300,6 +6350,48 @@ export const DICIONARIO: Traducoes = {
   },
   "Não conseguimos preparar o arquivo para envio.": {
     es: "No pudimos preparar el archivo para el envío.",
+  },
+  "Não foi possível enviar esta mensagem.": {
+    es: "No se pudo enviar este mensaje.",
+  },
+  "A mensagem não saiu de novo.": {
+    es: "El mensaje no salió de nuevo.",
+  },
+  "Aguardando conexão": {
+    es: "Esperando conexión",
+  },
+  "Não enviada — sem conexão": {
+    es: "No enviado — sin conexión",
+  },
+  "Enviar esta mensagem de novo?": {
+    es: "¿Enviar este mensaje de nuevo?",
+  },
+  "Pode ser que esta mensagem já tenha chegado. Confira no WhatsApp do cliente antes de enviar de novo.": {
+    es: "Puede que este mensaje ya haya llegado. Verifica en el WhatsApp del cliente antes de enviarlo de nuevo.",
+  },
+  "O WhatsApp não confirmou o envio a tempo. Pode ser que a mensagem tenha chegado.": {
+    es: "WhatsApp no confirmó el envío a tiempo. Puede que el mensaje haya llegado.",
+  },
+  "Este número está desativado. Reative em Conexões para enviar.": {
+    es: "Este número está desactivado. Reactívalo en Conexiones para enviar.",
+  },
+  "Este número não tem WhatsApp.": {
+    es: "Este número no tiene WhatsApp.",
+  },
+  "A janela de 24 horas fechou. Envie um modelo aprovado ou aguarde o cliente escrever.": {
+    es: "La ventana de 24 horas se cerró. Envía una plantilla aprobada o espera a que el cliente escriba.",
+  },
+  "Esta mensagem não pode ser reenviada.": {
+    es: "Este mensaje no se puede reenviar.",
+  },
+  "Confirme antes de enviar de novo.": {
+    es: "Confirma antes de enviar de nuevo.",
+  },
+  "Esta mensagem já está sendo reenviada.": {
+    es: "Este mensaje ya se está reenviando.",
+  },
+  "Muitas tentativas seguidas. Tente em um minuto.": {
+    es: "Demasiados intentos seguidos. Intenta en un minuto.",
   },
   "O agente escolhido não tem versão publicada. Publique-o em Agentes de IA para a automação poder usá-lo.": {
     es: "El agente elegido no tiene versión publicada. Publícalo en Agentes de IA para que la automatización pueda usarlo.",
@@ -8838,6 +8930,21 @@ export const DICIONARIO: Traducoes = {
   "O agente interpretou a resposta": { es: "El agente interpretó la respuesta" },
   "Fluxo concluído": { es: "Flujo concluido" },
   "O fluxo parou de tentar": { es: "El flujo dejó de intentarlo" },
+  "Esperando o outro acompanhamento deste contato terminar": {
+    es: "Esperando a que termine el otro seguimiento de este contacto",
+  },
+  "tenta de novo a cada hora, por até 7 dias": {
+    es: "intenta de nuevo cada hora, hasta 7 días",
+  },
+  "Cancelado: outro acompanhamento ocupou o contato por 7 dias": {
+    es: "Cancelado: otro seguimiento ocupó el contacto durante 7 días",
+  },
+  "esperou 7 dias pelo outro acompanhamento deste contato terminar": {
+    es: "esperó 7 días a que terminara el otro seguimiento de este contacto",
+  },
+  "Outro acompanhamento ocupou o contato por 7 dias": {
+    es: "Otro seguimiento ocupó el contacto durante 7 días",
+  },
   "Falhou neste passo": { es: "Falló en este paso" },
   "Não conseguiu mover o card para a etapa escolhida": {
     es: "No pudo mover la tarjeta a la etapa elegida",
@@ -11031,6 +11138,8 @@ export const DICIONARIO: Traducoes = {
   "Funil não encontrado.": { es: "Embudo no encontrado." },
   "Informe o novo horário.": { es: "Indica el nuevo horario." },
   "Já existe um fluxo com este nome.": { es: "Ya existe un flujo con este nombre." },
+  "Já existe um contato com este CPF.": { es: "Ya existe un contacto con este CPF." },
+  "Já existe um contato com este e-mail.": { es: "Ya existe un contacto con este correo electrónico." },
   "Já existe um contato com este telefone.": { es: "Ya existe un contacto con este teléfono." },
   "Janela inválida.": { es: "Ventana inválida." },
   "Janela inválida: 'from' deve ser anterior a 'to'.": { es: "Ventana inválida: 'from' debe ser anterior a 'to'." },
@@ -16804,7 +16913,15 @@ export const DICIONARIO: Traducoes = {
   "Lista pesquisável": { es: "Lista con búsqueda" },
   "Sim ou não": { es: "Sí o no" },
   "Link (URL)": { es: "Enlace (URL)" },
-  "O agente terminou sem propor uma resposta. Pode ter sido uma decisão (por exemplo, diante de uma mensagem automática) ou a geração ter parado antes da resposta. Se esperava uma, gere de novo; senão, não há nada a enviar.": { es: "El agente terminó sin proponer una respuesta. Pudo ser una decisión (por ejemplo, ante un mensaje automático) o que la generación se detuviera antes de la respuesta. Si esperabas una, genera de nuevo; si no, no hay nada que enviar." },
+  "O agente decidiu não responder: terminou sem propor uma resposta e sem nenhum impedimento no caminho. Se você esperava uma, gere de novo; senão, não há nada a enviar.": {
+    es: "El agente decidió no responder: terminó sin proponer una respuesta y sin ningún impedimento en el camino. Si esperabas una, genera de nuevo; si no, no hay nada que enviar.",
+  },
+  "A geração da sugestão foi cortada no limite de tamanho da resposta e parou antes de propor algo. Nada foi enviado ao cliente. Gere de novo; se repetir, reduza o que o agente precisa escrever de uma vez ou aumente o teto de tokens de saída do provedor.": {
+    es: "La generación de la sugerencia se cortó en el límite de tamaño de la respuesta y se detuvo antes de proponer algo. No se envió nada al cliente. Genera de nuevo; si se repite, reduce lo que el agente necesita escribir de una vez o aumenta el tope de tokens de salida del proveedor.",
+  },
+  "O agente gastou o teto de passos da configuração em consultas e terminou sem propor uma resposta. Nada foi enviado. Gere de novo; se repetir, aumente \"Ações por atendimento\" no agente ou reduza o que ele precisa consultar antes de responder.": {
+    es: "El agente gastó el tope de pasos de la configuración en consultas y terminó sin proponer una respuesta. No se envió nada. Genera de nuevo; si se repite, aumenta \"Acciones por atención\" en el agente o reduce lo que necesita consultar antes de responder.",
+  },
   "Novo aviso": { es: "Nuevo aviso" },
   "Opção inválida.": { es: "Opción inválida." },
   "Não consegui ler esta configuração agora.": { es: "No pude leer esta configuración ahora." },
