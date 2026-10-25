@@ -37,7 +37,7 @@ export default async function TermsPage() {
       <section className="space-y-2">
         <h2 className="text-base font-semibold">{t("1. Quem é quem")}</h2>
         <p>
-          {t("O")} {op.sistema} {t("é um software de código aberto instalado e operado por")}{" "}
+          {t("O")} {op.sistema} {t("é um software instalado e operado por")}{" "}
           <strong>{operador}</strong>
           {op.cnpj ? ` (CNPJ ${op.cnpj})` : ""}, {t("daqui em diante")}{" "}
           <strong>{t("o operador")}</strong>.{" "}

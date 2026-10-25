@@ -9375,8 +9375,8 @@ export const DICIONARIO: Traducoes = {
   "As regras de uso desta instalação do": { es: "Las reglas de uso de esta instalación de" },
   "1. Quem é quem": { es: "1. Quién es quién" },
   "O": { es: "El" },
-  "é um software de código aberto instalado e operado por": {
-    es: "es un software de código abierto instalado y operado por",
+  "é um software instalado e operado por": {
+    es: "es un software instalado y operado por",
   },
   "daqui em diante": { es: "de aquí en adelante" },
   "o operador": { es: "el operador" },
